@@ -31,6 +31,7 @@ import org.wso2.carbon.device.mgt.common.license.mgt.License;
 import org.wso2.carbon.device.mgt.common.operation.mgt.Operation;
 import org.wso2.carbon.device.mgt.common.operation.mgt.OperationManagementException;
 import org.wso2.carbon.device.mgt.core.operation.mgt.ProfileOperation;
+import org.wso2.carbon.device.mgt.core.util.DeviceManagerUtil;
 import org.wso2.carbon.mdm.services.android.bean.AndroidPlatformConfiguration;
 import org.wso2.carbon.mdm.services.android.bean.ErrorResponse;
 import org.wso2.carbon.mdm.services.android.bean.NotifierFrequency;
@@ -124,25 +125,42 @@ public class DeviceTypeConfigurationServiceImpl implements DeviceTypeConfigurati
                 } else if (AndroidConstants.TenantConfigProperties.NOTIFIER_FREQUENCY.equals(entry.getName())) {
                     List<Device> deviceList = AndroidAPIUtils.
                             getDeviceManagementService().
-                            getAllDevices(DeviceManagementConstants.MobileDeviceTypes.MOBILE_DEVICE_TYPE_ANDROID);
-                    List<DeviceIdentifier> deviceIdList = new ArrayList<>();
-                    for (Device device : deviceList) {
-                        deviceIdList.add(new DeviceIdentifier(device.getDeviceIdentifier(),device.getType()));
+                            getAllDevices(
+                                    DeviceManagementConstants.MobileDeviceTypes.MOBILE_DEVICE_TYPE_ANDROID);
+                    List<Device> validDevices = null;
+                    List<Device> invalidDevices = null;
+                    for (Device device:deviceList) {
+                        if (DeviceManagerUtil.isValidDeviceIdentifier(new 
+                                DeviceIdentifier(device.getDeviceIdentifier(), device.getType()))) {
+                            validDevices.add(device);
+                        } else {
+                            invalidDevices.add(device);
+                        }
                     }
-                    if (entry.getValue() != null) {
-                        NotifierFrequency notifierFrequency = new NotifierFrequency();
-                        notifierFrequency.setValue(Integer.parseInt(entry.getValue().toString()));
-                        ProfileOperation operation = new ProfileOperation();
-                        operation.setCode(AndroidConstants.OperationCodes.NOTIFIER_FREQUENCY);
-                        operation.setPayLoad(notifierFrequency.toJSON());
-                        operation.setType(Operation.Type.CONFIG);
-                        operation.setEnabled(true);
-                        AndroidAPIUtils.getDeviceManagementService().addOperation(
-                                DeviceManagementConstants.MobileDeviceTypes.MOBILE_DEVICE_TYPE_ANDROID,
-                                operation, deviceIdList);
+                    if (deviceList.size() > 0) {
+
+                        List<DeviceIdentifier> deviceIdList = new ArrayList<>();
+                        for (Device device : deviceList) {
+                            deviceIdList.add(new DeviceIdentifier(device.getDeviceIdentifier(), device.getType()));
+                        }
+                        if (entry.getValue() != null) {
+                            NotifierFrequency notifierFrequency = new NotifierFrequency();
+                            notifierFrequency.setValue(Integer.parseInt(entry.getValue().toString()));
+                            ProfileOperation operation = new ProfileOperation();
+                            operation.setCode(AndroidConstants.OperationCodes.NOTIFIER_FREQUENCY);
+                            operation.setPayLoad(notifierFrequency.toJSON());
+                            operation.setType(Operation.Type.CONFIG);
+                            operation.setEnabled(true);
+                            AndroidAPIUtils.getDeviceManagementService().addOperation(
+                                    DeviceManagementConstants.MobileDeviceTypes.MOBILE_DEVICE_TYPE_ANDROID,
+                                    operation, deviceIdList);
+                        } else {
+                            return Response.status(Response.Status.BAD_REQUEST)
+                                    .entity("No value specified for notifierFrequency.").build();
+                        }
                     } else {
                         return Response.status(Response.Status.BAD_REQUEST)
-                                .entity("No value specified for notifierFrequency.").build();
+                                .entity("There are no any active device to update the platform configurations.").build();
                     }
                 }
             }

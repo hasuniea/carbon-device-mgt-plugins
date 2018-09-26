@@ -33,6 +33,7 @@ import org.wso2.carbon.device.mgt.common.license.mgt.License;
 import org.wso2.carbon.device.mgt.common.operation.mgt.Activity;
 import org.wso2.carbon.device.mgt.common.operation.mgt.Operation;
 import org.wso2.carbon.device.mgt.common.operation.mgt.OperationManagementException;
+import org.wso2.carbon.device.mgt.common.policy.mgt.Policy;
 import org.wso2.carbon.device.mgt.common.policy.mgt.PolicyMonitoringManager;
 import org.wso2.carbon.device.mgt.common.pull.notification.PullNotificationExecutionFailedException;
 import org.wso2.carbon.device.mgt.common.push.notification.NotificationStrategy;
@@ -51,6 +52,11 @@ import java.util.List;
 public class DeviceManagementProviderServiceMock implements DeviceManagementProviderService {
     @Override
     public List<Device> getAllDevices(String s) throws DeviceManagementException {
+        return null;
+    }
+
+    @Override
+    public List<Device> getAllUnRemovedDevicesByStatus(String s) throws DeviceManagementException {
         return null;
     }
 
@@ -390,6 +396,11 @@ public class DeviceManagementProviderServiceMock implements DeviceManagementProv
     }
 
     @Override
+    public void addPolicyOperations(String s, Policy policy, List<DeviceIdentifier> list) throws OperationManagementException, InvalidDeviceException {
+
+    }
+
+    @Override
     public List<? extends Operation> getOperations(DeviceIdentifier deviceIdentifier)
             throws OperationManagementException {
         return null;
@@ -472,7 +483,17 @@ public class DeviceManagementProviderServiceMock implements DeviceManagementProv
     }
 
     @Override
+    public List<Activity> getActivitiesUpdatedAfterByUser(long l, String s, int i, int i1) throws OperationManagementException {
+        return null;
+    }
+
+    @Override
     public int getActivityCountUpdatedAfter(long l) throws OperationManagementException {
+        return 0;
+    }
+
+    @Override
+    public int getActivityCountUpdatedAfterByUser(long l, String s) throws OperationManagementException {
         return 0;
     }
 
